@@ -24,7 +24,13 @@ ls target/release/libprecompiles.so
 
 These functions need export as precompiles:
 
-1. Anemoi [execute]() [gas]()
+1. anemoi [hash]()
+2. en_on_bn254 (BabyJubjub)
+   - [point add]()
+   - [scalar mul point]()
+3. PlonK
+   - [verify]()
+   - [Shuffle verify]()
 
 ## License
 

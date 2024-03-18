@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub enum Error {
     Serialize,
-    Deserialize
+    Deserialize,
 }
 
 impl Error {

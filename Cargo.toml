@@ -19,6 +19,7 @@ ark-ec = "0.4"
 ark-std = "0.4"
 ark-serialize = "0.4"
 ark-bn254 = "0.4"
+ark-ed-on-bn254 = "0.4"
 zplonk = { git = "https://github.com/zypher-game/uzkge.git" }
 
 [dev-dependencies]
