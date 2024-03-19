@@ -109,3 +109,86 @@ fn scalar_mul(data: &[u8], ret: &mut [u8]) -> Result<()> {
 
     Ok(())
 }
+
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use primitive_types::U256;
+    use ark_ff::{UniformRand, vec};
+    use ark_std::rand::SeedableRng;
+    use rand_chacha::ChaChaRng;
+
+    #[test]
+    fn ed_on_bn254_point_add_works() {
+        let mut ret = vec![0u8; 64];
+        let mut data = vec![0u8; 128];
+
+        // generate p1, p2
+        let mut prng = ChaChaRng::from_seed([0u8; 32]);
+        let p1 = EdwardsAffine::rand(&mut prng);
+        let p2 = EdwardsAffine::rand(&mut prng);
+        let (p1_0, p1_1) = p1.xy().unwrap();
+        let (p2_0, p2_1) = p2.xy().unwrap();
+
+        // add with rust
+        let (p3_0, p3_1) = (p1 + p2).into_affine().xy().unwrap();
+        let p3_0 = U256::from_big_endian(&p3_0.into_bigint().to_bytes_be());
+        let p3_1 = U256::from_big_endian(&p3_1.into_bigint().to_bytes_be());
+
+        // test from precompile serialize
+        let p1_x = U256::from_big_endian(&p1_0.into_bigint().to_bytes_be());
+        let p1_y = U256::from_big_endian(&p1_1.into_bigint().to_bytes_be());
+        let p2_x = U256::from_big_endian(&p2_0.into_bigint().to_bytes_be());
+        let p2_y = U256::from_big_endian(&p2_1.into_bigint().to_bytes_be());
+
+        p1_x.to_big_endian(&mut data[0..32]);
+        p1_y.to_big_endian(&mut data[32..64]);
+        p2_x.to_big_endian(&mut data[64..96]);
+        p2_y.to_big_endian(&mut data[96..128]);
+
+        point_add(&data, &mut ret).unwrap();
+
+        let p3_x = U256::from_big_endian(&ret[..32]);
+        let p3_y = U256::from_big_endian(&ret[32..]);
+
+        assert_eq!(p3_x, p3_0);
+        assert_eq!(p3_y, p3_1);
+    }
+
+    #[test]
+    fn ed_on_bn254_scalar_mul_works() {
+        let mut ret = vec![0u8; 64];
+        let mut data = vec![0u8; 96];
+
+        // generate scalar, p1
+        let mut prng = ChaChaRng::from_seed([0u8; 32]);
+        let s = Fr::rand(&mut prng);
+        let p1 = EdwardsAffine::rand(&mut prng);
+        let (p1_0, p1_1) = p1.xy().unwrap();
+
+        // add with rust
+        let (p3_0, p3_1) = (p1 * s).into_affine().xy().unwrap();
+        let p3_0 = U256::from_big_endian(&p3_0.into_bigint().to_bytes_be());
+        let p3_1 = U256::from_big_endian(&p3_1.into_bigint().to_bytes_be());
+
+        // test from precompile serialize
+        let scalar = U256::from_big_endian(&s.into_bigint().to_bytes_be());
+        let p1_x = U256::from_big_endian(&p1_0.into_bigint().to_bytes_be());
+        let p1_y = U256::from_big_endian(&p1_1.into_bigint().to_bytes_be());
+
+        scalar.to_big_endian(&mut data[0..32]);
+        p1_x.to_big_endian(&mut data[32..64]);
+        p1_y.to_big_endian(&mut data[64..96]);
+
+        scalar_mul(&data, &mut ret).unwrap();
+
+        let p3_x = U256::from_big_endian(&ret[..32]);
+        let p3_y = U256::from_big_endian(&ret[32..]);
+
+        assert_eq!(p3_x, p3_0);
+        assert_eq!(p3_y, p3_1);
+
+    }
+}

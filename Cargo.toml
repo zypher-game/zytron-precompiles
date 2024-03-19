@@ -20,10 +20,11 @@ ark-std = "0.4"
 ark-serialize = "0.4"
 ark-bn254 = "0.4"
 ark-ed-on-bn254 = "0.4"
-zplonk = { git = "https://github.com/zypher-game/uzkge.git" }
+uzkge = { git = "https://github.com/zypher-game/uzkge.git" }
 
 [dev-dependencies]
 hex = "0.4.3"
+rand_chacha = "0.3"
 
 [patch.crates-io]
 ark-ff = { git = "https://github.com/arkworks-rs/algebra" }

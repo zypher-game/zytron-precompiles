@@ -3,7 +3,7 @@ use ark_bn254::Fr;
 use ark_ff::{BigInteger, PrimeField};
 use core::slice;
 use ethabi::ParamType;
-use zplonk::anemoi::{AnemoiJive, AnemoiJive254};
+use uzkge::anemoi::{AnemoiJive, AnemoiJive254};
 
 use crate::{utils, Error, Result};
 
