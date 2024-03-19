@@ -110,21 +110,17 @@ fn scalar_mul(data: &[u8], ret: &mut [u8]) -> Result<()> {
     Ok(())
 }
 
-
-
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitive_types::U256;
-    use ark_ff::{UniformRand, vec};
+    use ark_ff::{vec, UniformRand};
     use ark_std::rand::SeedableRng;
+    use ethabi::Token;
+    use primitive_types::U256;
     use rand_chacha::ChaChaRng;
 
     #[test]
     fn ed_on_bn254_point_add_works() {
-        let mut ret = vec![0u8; 64];
-        let mut data = vec![0u8; 128];
-
         // generate p1, p2
         let mut prng = ChaChaRng::from_seed([0u8; 32]);
         let p1 = EdwardsAffine::rand(&mut prng);
@@ -143,15 +139,19 @@ mod tests {
         let p2_x = U256::from_big_endian(&p2_0.into_bigint().to_bytes_be());
         let p2_y = U256::from_big_endian(&p2_1.into_bigint().to_bytes_be());
 
-        p1_x.to_big_endian(&mut data[0..32]);
-        p1_y.to_big_endian(&mut data[32..64]);
-        p2_x.to_big_endian(&mut data[64..96]);
-        p2_y.to_big_endian(&mut data[96..128]);
+        let data = ethabi::encode(&[
+            Token::Uint(p1_x),
+            Token::Uint(p1_y),
+            Token::Uint(p2_x),
+            Token::Uint(p2_y),
+        ]);
+        let mut ret = vec![0u8; 64];
 
         point_add(&data, &mut ret).unwrap();
 
-        let p3_x = U256::from_big_endian(&ret[..32]);
-        let p3_y = U256::from_big_endian(&ret[32..]);
+        let r = ethabi::decode(&[ParamType::Uint(256), ParamType::Uint(256)], &ret).unwrap();
+        let p3_x = r[0].clone().into_uint().unwrap();
+        let p3_y = r[1].clone().into_uint().unwrap();
 
         assert_eq!(p3_x, p3_0);
         assert_eq!(p3_y, p3_1);
@@ -159,9 +159,6 @@ mod tests {
 
     #[test]
     fn ed_on_bn254_scalar_mul_works() {
-        let mut ret = vec![0u8; 64];
-        let mut data = vec![0u8; 96];
-
         // generate scalar, p1
         let mut prng = ChaChaRng::from_seed([0u8; 32]);
         let s = Fr::rand(&mut prng);
@@ -178,17 +175,16 @@ mod tests {
         let p1_x = U256::from_big_endian(&p1_0.into_bigint().to_bytes_be());
         let p1_y = U256::from_big_endian(&p1_1.into_bigint().to_bytes_be());
 
-        scalar.to_big_endian(&mut data[0..32]);
-        p1_x.to_big_endian(&mut data[32..64]);
-        p1_y.to_big_endian(&mut data[64..96]);
+        let data = ethabi::encode(&[Token::Uint(scalar), Token::Uint(p1_x), Token::Uint(p1_y)]);
+        let mut ret = vec![0u8; 64];
 
         scalar_mul(&data, &mut ret).unwrap();
 
-        let p3_x = U256::from_big_endian(&ret[..32]);
-        let p3_y = U256::from_big_endian(&ret[32..]);
+        let r = ethabi::decode(&[ParamType::Uint(256), ParamType::Uint(256)], &ret).unwrap();
+        let p3_x = r[0].clone().into_uint().unwrap();
+        let p3_y = r[1].clone().into_uint().unwrap();
 
         assert_eq!(p3_x, p3_0);
         assert_eq!(p3_y, p3_1);
-
     }
 }
