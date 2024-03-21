@@ -1,8 +1,11 @@
 use ark_ec::{AffineRepr, CurveGroup};
 use ark_ed_on_bn254::{EdwardsAffine, Fq, Fr};
 use ark_ff::{BigInteger, PrimeField};
+use ark_serialize::CanonicalSerialize;
+use ark_std::io::Cursor;
 use core::slice;
 use ethabi::ParamType;
+use uzkge::anemoi::{AnemoiJive, AnemoiJive254};
 
 use crate::{utils, Error, Result};
 
@@ -53,15 +56,10 @@ fn point_add(data: &[u8], ret: &mut [u8]) -> Result<()> {
     h4.to_big_endian(&mut tmp_bytes);
     let y_2 = Fq::from_be_bytes_mod_order(&tmp_bytes);
 
-    let p1 = EdwardsAffine::new(x_1, y_1);
-    let p2 = EdwardsAffine::new(x_2, y_2);
-    let p3 = p1 + p2;
-
-    let (r_x, r_y) = p3.into_affine().xy().unwrap();
-    ret[0..32].copy_from_slice(&r_x.into_bigint().to_bytes_be());
-    ret[32..64].copy_from_slice(&r_y.into_bigint().to_bytes_be());
-
-    Ok(())
+    let res = AnemoiJive254::eval_variable_length_hash(&[x_1, x_2, y_1, y_2]);
+    let writer = Cursor::new(ret);
+    res.serialize_compressed(writer)
+        .map_err(|_e| Error::Serialize)
 }
 
 #[no_mangle]
@@ -94,20 +92,16 @@ fn scalar_mul(data: &[u8], ret: &mut [u8]) -> Result<()> {
     let h3 = utils::into_uint256(r.get(2).cloned()).ok_or(Error::Deserialize)?;
     let mut tmp_bytes = [0u8; 32];
     h1.to_big_endian(&mut tmp_bytes);
-    let s = Fr::from_be_bytes_mod_order(&tmp_bytes);
+    let s = Fq::from_be_bytes_mod_order(&tmp_bytes);
     h2.to_big_endian(&mut tmp_bytes);
     let x = Fq::from_be_bytes_mod_order(&tmp_bytes);
     h3.to_big_endian(&mut tmp_bytes);
     let y = Fq::from_be_bytes_mod_order(&tmp_bytes);
 
-    let p = EdwardsAffine::new(x, y);
-    let p2 = p * s;
-
-    let (r_x, r_y) = p2.into_affine().xy().unwrap();
-    ret[0..32].copy_from_slice(&r_x.into_bigint().to_bytes_be());
-    ret[32..64].copy_from_slice(&r_y.into_bigint().to_bytes_be());
-
-    Ok(())
+    let res = AnemoiJive254::eval_variable_length_hash(&[x, s, y, y]);
+    let writer = Cursor::new(ret);
+    res.serialize_compressed(writer)
+        .map_err(|_e| Error::Serialize)
 }
 
 #[cfg(test)]
