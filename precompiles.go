@@ -17,21 +17,16 @@ uint8_t __precompile_ed_on_bn254_scalar_mul(const void* data_ptr, const uint32_t
 */
 import "C"
 import (
+	"context"
+	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/vm"
+	"math/big"
 	"unsafe"
 )
 
 type Anemoi struct{}
 
-func (a *Anemoi) RequiredGas(input []byte) uint64 {
-	cstr := unsafe.Pointer(&input[0])
-	len := C.uint(len(input))
-
-	gas := C.__precompile_anemoi_gas(cstr, len)
-
-	return uint64(gas)
-}
-
-func (a *Anemoi) Run(input []byte) ([]byte, error) {
+func (a *Anemoi) Run(_ context.Context, _ vm.PrecompileEVM, input []byte, _ common.Address, _ *big.Int) ([]byte, error) {
 	output := make([]byte, 64)
 	cout := unsafe.Pointer(&output[0])
 
@@ -45,18 +40,26 @@ func (a *Anemoi) Run(input []byte) ([]byte, error) {
 	return output, nil
 }
 
-type EdOnBN254PointAdd struct{}
-
-func (a *EdOnBN254PointAdd) RequiredGas(input []byte) uint64 {
+func (a *Anemoi) RequiredGas(input []byte) uint64 {
 	cstr := unsafe.Pointer(&input[0])
 	len := C.uint(len(input))
 
-	gas := C.__precompile_ed_on_bn254_point_add_gas(cstr, len)
+	gas := C.__precompile_anemoi_gas(cstr, len)
 
 	return uint64(gas)
 }
 
-func (a *EdOnBN254PointAdd) Run(input []byte) ([]byte, error) {
+func (a *Anemoi) RegistryKey() common.Address {
+	return common.BytesToAddress([]byte{20})
+}
+
+type EdOnBN254PointAdd struct{}
+
+func (a *EdOnBN254PointAdd) RegistryKey() common.Address {
+	return common.BytesToAddress([]byte{21})
+}
+
+func (a *EdOnBN254PointAdd) Run(_ context.Context, _ vm.PrecompileEVM, input []byte, _ common.Address, _ *big.Int) ([]byte, error) {
 	output := make([]byte, 64)
 	cout := unsafe.Pointer(&output[0])
 
@@ -70,18 +73,22 @@ func (a *EdOnBN254PointAdd) Run(input []byte) ([]byte, error) {
 	return output, nil
 }
 
-type EdOnBN254ScalarMul struct{}
-
-func (a *EdOnBN254ScalarMul) RequiredGas(input []byte) uint64 {
+func (a *EdOnBN254PointAdd) RequiredGas(input []byte) uint64 {
 	cstr := unsafe.Pointer(&input[0])
 	len := C.uint(len(input))
 
-	gas := C.__precompile_ed_on_bn254_scalar_mul_gas(cstr, len)
+	gas := C.__precompile_ed_on_bn254_point_add_gas(cstr, len)
 
 	return uint64(gas)
 }
 
-func (a *EdOnBN254ScalarMul) Run(input []byte) ([]byte, error) {
+type EdOnBN254ScalarMul struct{}
+
+func (a *EdOnBN254ScalarMul) RegistryKey() common.Address {
+	return common.BytesToAddress([]byte{22})
+}
+
+func (a *EdOnBN254ScalarMul) Run(_ context.Context, _ vm.PrecompileEVM, input []byte, _ common.Address, _ *big.Int) ([]byte, error) {
 	output := make([]byte, 64)
 	cout := unsafe.Pointer(&output[0])
 
@@ -93,4 +100,13 @@ func (a *EdOnBN254ScalarMul) Run(input []byte) ([]byte, error) {
 	output[63] = byte(res)
 
 	return output, nil
+}
+
+func (a *EdOnBN254ScalarMul) RequiredGas(input []byte) uint64 {
+	cstr := unsafe.Pointer(&input[0])
+	len := C.uint(len(input))
+
+	gas := C.__precompile_ed_on_bn254_scalar_mul_gas(cstr, len)
+
+	return uint64(gas)
 }
