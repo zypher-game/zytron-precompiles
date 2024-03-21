@@ -17,7 +17,6 @@ uint8_t __precompile_ed_on_bn254_scalar_mul(const void* data_ptr, const uint32_t
 */
 import "C"
 import (
-	"fmt"
 	"unsafe"
 )
 
