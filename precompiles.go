@@ -1,7 +1,7 @@
 package precompiles
 
 /*
-#cgo LDFLAGS: -L../target/release/ -lprecompiles -lm
+#cgo LDFLAGS: -L./target/release/ -lprecompiles -lm
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -10,9 +10,9 @@ uint64_t __precompile_anemoi_gas(const void* data_ptr, const uint32_t data_len);
 uint8_t __precompile_anemoi(const void* data_ptr, const uint32_t data_len, void* ret_val);
 
 uint64_t __precompile_ed_on_bn254_point_add_gas(const void* data_ptr, const uint32_t data_len);
-uint8_t __precompile_ed_on_bn254_point_add(const void* data_ptr, const uint32_t data_len);
+uint8_t __precompile_ed_on_bn254_point_add(const void* data_ptr, const uint32_t data_len, const void* ret_val);
 uint64_t __precompile_ed_on_bn254_scalar_mul_gas(const void* data_ptr, const uint32_t data_len);
-uint8_t __precompile_ed_on_bn254_scalar_mul(const void* data_ptr, const uint32_t data_len);
+uint8_t __precompile_ed_on_bn254_scalar_mul(const void* data_ptr, const uint32_t data_len, const void* ret_val);
 
 */
 import "C"
