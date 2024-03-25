@@ -70,7 +70,7 @@ pub fn into_bytes(tk: Option<Token>) -> Option<Vec<u8>> {
 }
 
 #[allow(unused)]
-pub fn into_bytes_array_array(tk: Option<Token>) -> Option<Vec<Vec<Vec<u8>>>> {
+pub fn into_bytes_2d_array(tk: Option<Token>) -> Option<Vec<Vec<Vec<u8>>>> {
     let tokens = tk.and_then(|v| v.into_array())?;
 
     let mut res = Vec::with_capacity(tokens.len());
