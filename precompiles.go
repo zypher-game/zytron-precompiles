@@ -14,6 +14,9 @@ uint8_t __precompile_ed_on_bn254_point_add(const void* data_ptr, const uint32_t 
 uint64_t __precompile_ed_on_bn254_scalar_mul_gas(const void* data_ptr, const uint32_t data_len);
 uint8_t __precompile_ed_on_bn254_scalar_mul(const void* data_ptr, const uint32_t data_len, const void* ret_val);
 
+uint8_t __precompile_verify_matchmaking(const void* data_ptr, const uint32_t data_len);
+uint8_t __precompile_verify_shuffle(const void* data_ptr, const uint32_t data_len);
+uint64_t __precompile_plonk_verify_gas(const void* data_ptr, const uint32_t data_len);
 */
 import "C"
 import (

@@ -70,6 +70,19 @@ pub fn into_bytes(tk: Option<Token>) -> Option<Vec<u8>> {
 }
 
 #[allow(unused)]
+pub fn into_bytes_array_array(tk: Option<Token>) -> Option<Vec<Vec<Vec<u8>>>> {
+    let tokens = tk.and_then(|v| v.into_array())?;
+
+    let mut res = Vec::with_capacity(tokens.len());
+    for token in tokens {
+        let bytes_array = into_bytes_array(Some(token))?;
+        res.push(bytes_array)
+    }
+
+    Some(res)
+}
+
+#[allow(unused)]
 pub fn into_bytes_array(tk: Option<Token>) -> Option<Vec<Vec<u8>>> {
     let tokens = tk.and_then(|v| v.into_array())?;
 

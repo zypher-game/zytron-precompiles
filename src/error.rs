@@ -2,13 +2,15 @@
 pub enum Error {
     Serialize,
     Deserialize,
+    VerifyFail,
 }
 
 impl Error {
     pub fn code(&self) -> u8 {
         match self {
-            Error::Serialize => 1,
-            Error::Deserialize => 2,
+            Self::Serialize => 1,
+            Self::Deserialize => 2,
+            Self::VerifyFail => 3,
         }
     }
 }
