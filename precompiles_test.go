@@ -10,6 +10,17 @@ import (
 	//"github.com/zytron/zytron-op-percompiles/precompiles"
 )
 
+func Test2(t *testing.T) {
+	addr1 := common.BytesToAddress([]byte{20})
+	fmt.Printf("1. %v \n", addr1)
+
+	addr2 := common.BytesToAddress([]byte{21})
+	fmt.Printf("2. %v \n", addr2)
+
+	addr3 := common.BytesToAddress([]byte{22})
+	fmt.Printf("3. %v \n", addr3)
+}
+
 func TestAnemoi(t *testing.T) {
 	a := &Anemoi{}
 	t.Run("eval_jive4", func(t *testing.T) {
@@ -61,4 +72,22 @@ func TestAnemoi(t *testing.T) {
 		assert.Nil(t, err)
 		fmt.Println(common.Bytes2Hex(res))
 	})
+}
+
+func TestBn254Add(t *testing.T) {
+	a := EdOnBN254PointAdd{}
+	inputData := "0d52c3aa573af39845660735de0d3d9efb481a112cf00623ab22546122d4e16a0e7e20b3cb30785b64cd6972e2ddf919db64d03d6cf01456243c5ef2fb766a65242cbada3ae8d6e90056e73e4941eeccee72cb99945a194f754205b3678bd7692d7690deeaa77c9d89b0ceb3c25f7bb09c44f40b4b8cf5d6fcb512c7be8fcba9"
+	inputBytes := common.Hex2Bytes(inputData)
+	res, err := a.Run(context.Background(), nil, inputBytes, common.Address{}, nil)
+	assert.Nil(t, err)
+	fmt.Println(common.Bytes2Hex(res))
+}
+
+func TestBn245Mul(t *testing.T) {
+	a := EdOnBN254ScalarMul{}
+	inputData := "008d7a42a4dde1d8f8bcacddcae9bc78b1480eb547d4a490d9cfa5c268a076c71738fd301654d891e32235d03a64b7ebe0c3f37df67db0b798f2664783b1bac922a689a1c0aebf70ceee76fe7891729002e072ceb7ba94a32b1fce79f8c009d9"
+	inputBytes := common.Hex2Bytes(inputData)
+	res, err := a.Run(context.Background(), nil, inputBytes, common.Address{}, nil)
+	assert.Nil(t, err)
+	fmt.Println(common.Bytes2Hex(res))
 }
