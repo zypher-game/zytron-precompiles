@@ -18,11 +18,21 @@ uint8_t __precompile_ed_on_bn254_scalar_mul(const void* data_ptr, const uint32_t
 import "C"
 import (
 	"context"
+	"errors"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/vm"
 	"math/big"
 	"unsafe"
 )
+
+func ErrHandle(code byte) error {
+	if code == 1 {
+		return errors.New("serialize error")
+	} else if code == 2 {
+		return errors.New("deserialzie error")
+	}
+	return nil
+}
 
 type Anemoi struct{}
 
@@ -35,9 +45,7 @@ func (a *Anemoi) Run(_ context.Context, _ vm.PrecompileEVM, input []byte, _ comm
 
 	res := C.__precompile_anemoi(cstr, len, cout)
 
-	output[63] = byte(res)
-
-	return output, nil
+	return output, ErrHandle(byte(res))
 }
 
 func (a *Anemoi) RequiredGas(input []byte) uint64 {
@@ -68,9 +76,7 @@ func (a *EdOnBN254PointAdd) Run(_ context.Context, _ vm.PrecompileEVM, input []b
 
 	res := C.__precompile_ed_on_bn254_point_add(cstr, len, cout)
 
-	output[63] = byte(res)
-
-	return output, nil
+	return output, ErrHandle(byte(res))
 }
 
 func (a *EdOnBN254PointAdd) RequiredGas(input []byte) uint64 {
@@ -97,9 +103,7 @@ func (a *EdOnBN254ScalarMul) Run(_ context.Context, _ vm.PrecompileEVM, input []
 
 	res := C.__precompile_ed_on_bn254_scalar_mul(cstr, len, cout)
 
-	output[63] = byte(res)
-
-	return output, nil
+	return output, ErrHandle(byte(res))
 }
 
 func (a *EdOnBN254ScalarMul) RequiredGas(input []byte) uint64 {
