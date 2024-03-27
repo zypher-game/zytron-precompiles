@@ -32,7 +32,9 @@ func ErrHandle(code byte) error {
 	if code == 1 {
 		return errors.New("serialize error")
 	} else if code == 2 {
-		return errors.New("deserialzie error")
+		return errors.New("deserialize error")
+	} else if code == 3 {
+		return errors.New("VerifyFail error")
 	}
 	return nil
 }
@@ -116,4 +118,53 @@ func (a *EdOnBN254ScalarMul) RequiredGas(input []byte) uint64 {
 	gas := C.__precompile_ed_on_bn254_scalar_mul_gas(cstr, len)
 
 	return uint64(gas)
+}
+
+type VerifyMatchmaking struct{}
+
+func (m *VerifyMatchmaking) RegistryKey() common.Address {
+	return common.BytesToAddress([]byte{23})
+}
+
+func (m *VerifyMatchmaking) RequiredGas(input []byte) uint64 {
+	cstr := unsafe.Pointer(&input[0])
+	len := C.uint(len(input))
+
+	gas := C.__precompile_plonk_verify_gas(cstr, len)
+
+	return uint64(gas)
+}
+
+func (m *VerifyMatchmaking) Run(ctx context.Context, evm vm.PrecompileEVM, input []byte, caller common.Address, value *big.Int) ([]byte, error) {
+
+	cstr := unsafe.Pointer(&input[0])
+	len := C.uint(len(input))
+
+	res := C.__precompile_verify_matchmaking(cstr, len)
+
+	return nil, ErrHandle(byte(res))
+}
+
+type VerifyShuffle struct{}
+
+func (s *VerifyShuffle) RegistryKey() common.Address {
+	return common.BytesToAddress([]byte{24})
+}
+
+func (s *VerifyShuffle) RequiredGas(input []byte) uint64 {
+	cstr := unsafe.Pointer(&input[0])
+	len := C.uint(len(input))
+
+	gas := C.__precompile_plonk_verify_gas(cstr, len)
+
+	return uint64(gas)
+}
+
+func (s *VerifyShuffle) Run(ctx context.Context, evm vm.PrecompileEVM, input []byte, caller common.Address, value *big.Int) ([]byte, error) {
+	cstr := unsafe.Pointer(&input[0])
+	len := C.uint(len(input))
+
+	res := C.__precompile_verify_shuffle(cstr, len)
+
+	return nil, ErrHandle(byte(res))
 }
