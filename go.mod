@@ -1,4 +1,4 @@
-module github.com/zytron/zytron-op-percompiles
+module github.com/zytron-game/zytron-op-percompiles
 
 go 1.21
 
