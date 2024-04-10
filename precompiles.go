@@ -20,11 +20,8 @@ uint64_t __precompile_plonk_verify_gas(const void* data_ptr, const uint32_t data
 */
 import "C"
 import (
-	"context"
 	"errors"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/vm"
-	"math/big"
 	"unsafe"
 )
 
@@ -41,7 +38,7 @@ func ErrHandle(code byte) error {
 
 type Anemoi struct{}
 
-func (a *Anemoi) Run(_ context.Context, _ vm.PrecompileEVM, input []byte, _ common.Address, _ *big.Int) ([]byte, error) {
+func (a *Anemoi) Run(input []byte) ([]byte, error) {
 	output := make([]byte, 64)
 	cout := unsafe.Pointer(&output[0])
 
@@ -72,7 +69,7 @@ func (a *EdOnBN254PointAdd) RegistryKey() common.Address {
 	return common.BytesToAddress([]byte{21})
 }
 
-func (a *EdOnBN254PointAdd) Run(_ context.Context, _ vm.PrecompileEVM, input []byte, _ common.Address, _ *big.Int) ([]byte, error) {
+func (a *EdOnBN254PointAdd) Run(input []byte) ([]byte, error) {
 	output := make([]byte, 64)
 	cout := unsafe.Pointer(&output[0])
 
@@ -99,7 +96,7 @@ func (a *EdOnBN254ScalarMul) RegistryKey() common.Address {
 	return common.BytesToAddress([]byte{22})
 }
 
-func (a *EdOnBN254ScalarMul) Run(_ context.Context, _ vm.PrecompileEVM, input []byte, _ common.Address, _ *big.Int) ([]byte, error) {
+func (a *EdOnBN254ScalarMul) Run(input []byte) ([]byte, error) {
 	output := make([]byte, 64)
 	cout := unsafe.Pointer(&output[0])
 
@@ -135,7 +132,7 @@ func (m *VerifyMatchmaking) RequiredGas(input []byte) uint64 {
 	return uint64(gas)
 }
 
-func (m *VerifyMatchmaking) Run(ctx context.Context, evm vm.PrecompileEVM, input []byte, caller common.Address, value *big.Int) ([]byte, error) {
+func (m *VerifyMatchmaking) Run(input []byte) ([]byte, error) {
 
 	cstr := unsafe.Pointer(&input[0])
 	len := C.uint(len(input))
@@ -160,7 +157,7 @@ func (s *VerifyShuffle) RequiredGas(input []byte) uint64 {
 	return uint64(gas)
 }
 
-func (s *VerifyShuffle) Run(ctx context.Context, evm vm.PrecompileEVM, input []byte, caller common.Address, value *big.Int) ([]byte, error) {
+func (s *VerifyShuffle) Run(input []byte) ([]byte, error) {
 	cstr := unsafe.Pointer(&input[0])
 	len := C.uint(len(input))
 
