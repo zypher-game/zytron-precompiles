@@ -1,7 +1,7 @@
 package precompiles
 
 /*
-#cgo LDFLAGS: -lprecompiles -lm
+#cgo LDFLAGS: -L../target/release -lprecompiles -lm
 
 #include <stdbool.h>
 #include <stdint.h>
@@ -21,8 +21,9 @@ uint64_t __precompile_plonk_verify_gas(const void* data_ptr, const uint32_t data
 import "C"
 import (
 	"errors"
-	"github.com/ethereum/go-ethereum/common"
 	"unsafe"
+
+	"github.com/ethereum/go-ethereum/common"
 )
 
 func ErrHandle(code byte) error {
