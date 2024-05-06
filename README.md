@@ -1,4 +1,4 @@
-# zytron-op-precompiles
+# zytron-precompiles
 
 ## Compile
 
@@ -6,7 +6,7 @@
 ``
 cargo build --release
 ``
-2. compile op-geth
+2. compile to geth
 ``
 env GO111MODULE=on go run build/ci.go install ./cmd/geth
 ``

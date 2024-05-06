@@ -1,4 +1,4 @@
-module github.com/zytron/zytron-op-percompiles
+module github.com/zytron/zytron-percompiles
 
 go 1.21.7
 
