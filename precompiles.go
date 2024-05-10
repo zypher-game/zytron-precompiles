@@ -1,7 +1,7 @@
 package precompiles
 
 /*
-#cgo LDFLAGS: -L../target/release -lprecompiles -lm
+#cgo LDFLAGS: -lprecompiles -lm
 
 #include <stdbool.h>
 #include <stdint.h>
