@@ -3,16 +3,16 @@ use ark_bn254::{Config, Fq as Bn254Fq, Fr};
 use ark_ec::bn::G1Affine;
 use ark_ed_on_bn254::{EdwardsAffine, EdwardsProjective, Fq};
 use ark_ff::PrimeField;
-use ark_std::{env};
-use core::slice;
+use ark_std::env;
 use ark_std::fs::File;
 use ark_std::io::BufReader;
-use ethabi::{ParamType};
+use core::slice;
+use ethabi::{ParamType, Token, Uint};
 use serde_json::Value;
 use uzkge::gen_params::VerifierParams;
 use uzkge::poly_commit::kzg_poly_commitment::KZGCommitment;
 use zmatchmaking::build_cs::{verify_matchmaking, Proof};
-use zshuffle::gen_params::{get_shuffle_verifier_params};
+use zshuffle::gen_params::get_shuffle_verifier_params;
 use zshuffle::{
     build_cs::{verify_shuffle, ShuffleProof, TurboCS},
     MaskedCard,
@@ -137,15 +137,18 @@ fn bytes_2_masked_card(cards: &[Vec<u8>]) -> Result<MaskedCard> {
     Ok(MaskedCard { e1, e2 })
 }
 
-fn parse_test_data() -> (Vec<Value>, Vec<Value>, Vec<Value>, Value){
-
+fn parse_test_data() -> (Vec<Value>, Vec<Value>, Vec<Value>, Value) {
     let current_exe = env::current_exe().unwrap();
 
     let project_dir = current_exe
-        .parent().unwrap()
-        .parent().unwrap()
-        .parent().unwrap()
-        .parent().unwrap();
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap()
+        .parent()
+        .unwrap();
 
     let in_data_file = project_dir.join("test_json").join("in.json");
     if !in_data_file.is_file() {
@@ -181,7 +184,7 @@ fn origin_data_test() {
         let mut ret = vec![];
         for x in input_deck.chunks(4) {
             let mut tmp = vec![];
-            x.iter().for_each(|v|{
+            x.iter().for_each(|v| {
                 let s = v.as_str().unwrap();
                 tmp.push(hex::decode(s.trim_start_matches("0x")).unwrap())
             });
@@ -195,7 +198,7 @@ fn origin_data_test() {
         let mut ret = vec![];
         for x in output_deck.chunks(4) {
             let mut tmp = vec![];
-            x.iter().for_each(|v|{
+            x.iter().for_each(|v| {
                 let s = v.as_str().unwrap();
                 tmp.push(hex::decode(s.trim_start_matches("0x")).unwrap())
             });
@@ -207,7 +210,6 @@ fn origin_data_test() {
 
     let verifier_params = {
         let pkc = {
-
             let mut ret = vec![];
 
             for x in pkc.chunks(2) {
@@ -237,14 +239,89 @@ fn origin_data_test() {
     let proof = {
         let str = proof.as_str().unwrap().trim_start_matches("0x");
         let bytes = hex::decode(str).unwrap();
-        let proof = ShuffleProof::from_bytes_be::<TurboCS>(&bytes).map_err(|_e| Error::Deserialize).unwrap();
+        let proof = ShuffleProof::from_bytes_be::<TurboCS>(&bytes)
+            .map_err(|_e| Error::Deserialize)
+            .unwrap();
         proof
     };
 
     verify_shuffle(&verifier_params, &input, &output, &proof)
         .map_err(|_e| Error::VerifyFail)
         .unwrap();
+}
 
+#[test]
+fn abi_encode_data_test() {
+    let (input_deck, output_deck, pkc, proof) = parse_test_data();
+
+    let dn = {
+        let dn = input_deck.len() / 4;
+        match dn {
+            52 => 1,
+            _ => panic!(""),
+        }
+    };
+
+    let input = {
+        let mut ret = Vec::new();
+        for x in input_deck.chunks(4) {
+            let mut tmp = vec![];
+
+            x.iter().for_each(|v| {
+                let s = v.as_str().unwrap().trim_start_matches("0x");
+                let bytes = hex::decode(s).unwrap();
+                tmp.push(Token::Bytes(bytes));
+            });
+
+            ret.push(Token::Array(tmp));
+        }
+
+        ret
+    };
+
+    let output = {
+        let mut ret = Vec::new();
+        for x in output_deck.chunks(4) {
+            let mut tmp = vec![];
+
+            x.iter().for_each(|v| {
+                let s = v.as_str().unwrap().trim_start_matches("0x");
+                let bytes = hex::decode(s).unwrap();
+                tmp.push(Token::Bytes(bytes));
+            });
+
+            ret.push(Token::Array(tmp));
+        }
+
+        ret
+    };
+
+    let pkc = {
+        let mut ret = vec![];
+
+        for x in pkc {
+            let s = x.as_str().unwrap().trim_start_matches("0x");
+            let bytes = hex::decode(s).unwrap();
+            ret.push(Token::Bytes(bytes));
+        }
+
+        ret
+    };
+
+    let proof = {
+        let s = proof.as_str().unwrap().trim_start_matches("0x");
+        hex::decode(s).unwrap()
+    };
+
+    let data = ethabi::encode(&[
+        Token::Uint(Uint::from(dn)),
+        Token::Array(pkc),
+        Token::Array(input),
+        Token::Array(output),
+        Token::Bytes(proof),
+    ]);
+
+    plonk_verify_shuffle2(&data).unwrap()
 }
 
 fn plonk_verify_shuffle2(data: &[u8]) -> Result<()> {
@@ -344,17 +421,11 @@ fn plonk_verify_shuffle(data: &[u8]) -> Result<()> {
         ],
         data,
     )
-    .map_err(|_e| {
-        Error::Deserialize
-    })?;
+    .map_err(|_e| Error::Deserialize)?;
 
     let verifier_params: VerifierParams = utils::into_bytes(r.get(0).cloned())
         .ok_or(Error::Deserialize)
-        .and_then(|v| {
-            bincode::deserialize(&v).map_err(|_e| {
-                Error::Deserialize
-            })
-        })?;
+        .and_then(|v| bincode::deserialize(&v).map_err(|_e| Error::Deserialize))?;
 
     let input_cards = {
         let cards = utils::into_bytes_2d_array(r.get(1).cloned()).ok_or(Error::Deserialize)?;
@@ -377,9 +448,7 @@ fn plonk_verify_shuffle(data: &[u8]) -> Result<()> {
     let proof: ShuffleProof = utils::into_bytes(r.get(3).cloned())
         .ok_or(Error::Deserialize)
         .and_then(|v| {
-            ShuffleProof::from_bytes_be::<TurboCS>(&v).map_err(|_e| {
-                Error::Deserialize
-            })
+            ShuffleProof::from_bytes_be::<TurboCS>(&v).map_err(|_e| Error::Deserialize)
         })?;
 
     verify_shuffle(&verifier_params, &input_cards, &output_cards, &proof)
