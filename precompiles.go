@@ -16,6 +16,7 @@ uint8_t __precompile_ed_on_bn254_scalar_mul(const void* data_ptr, const uint32_t
 
 uint8_t __precompile_verify_matchmaking(const void* data_ptr, const uint32_t data_len);
 uint8_t __precompile_verify_shuffle(const void* data_ptr, const uint32_t data_len);
+uint8_t __precompile_verify_shuffle2(const void* data_ptr, const uint32_t data_len);
 uint64_t __precompile_plonk_verify_gas(const void* data_ptr, const uint32_t data_len);
 */
 import "C"
@@ -163,6 +164,15 @@ func (s *VerifyShuffle) Run(input []byte) ([]byte, error) {
 	len := C.uint(len(input))
 
 	res := C.__precompile_verify_shuffle(cstr, len)
+
+	return nil, ErrHandle(byte(res))
+}
+
+func (s *VerifyShuffle) Run2(input []byte) ([]byte, error) {
+	cstr := unsafe.Pointer(&input[0])
+	len := C.uint(len(input))
+
+	res := C.__precompile_verify_shuffle2(cstr, len)
 
 	return nil, ErrHandle(byte(res))
 }
