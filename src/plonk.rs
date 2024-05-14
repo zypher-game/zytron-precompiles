@@ -327,45 +327,33 @@ fn abi_encode_data_test() {
 fn plonk_verify_shuffle2(data: &[u8]) -> Result<()> {
     let r = ethabi::decode(
         &[
-            ParamType::Uint(8),
-            ParamType::Array(Box::new(ParamType::Bytes)),
+            ParamType::Array(Box::new(ParamType::Uint(256))),
             ParamType::Array(Box::new(ParamType::Array(Box::new(ParamType::Bytes)))),
             ParamType::Array(Box::new(ParamType::Array(Box::new(ParamType::Bytes)))),
             ParamType::Bytes,
         ],
         data,
     )
-    .map_err(|_e| Error::Deserialize)?;
+    .unwrap();
 
-    let deck_num = {
-        let deck_num_type = r
-            .get(0)
-            .ok_or(Error::Deserialize)
-            .and_then(|v| v.clone().into_uint().ok_or(Error::Deserialize))
-            .map_err(|_| Error::Deserialize)?
-            .as_usize();
-        let deck_num = match deck_num_type {
-            0 => 20_usize,
-            1 => 52,
-            _ => return Err(Error::Deserialize),
-        };
-        deck_num
-    };
+    let deck_num = 52;
 
     let pkc = {
-        let pkc_bytes = utils::into_bytes_array(r.get(1).cloned()).ok_or(Error::Deserialize)?;
+        let pkc_bytes = r.get(0).cloned().unwrap().into_array().unwrap();
 
         let mut ret = vec![];
 
         for x in pkc_bytes.chunks(2) {
-            let x_bytes = x[0].as_slice();
-            let y_bytes = x[1].as_slice();
+            let mut x_bytes = [0u8; 32];
+            let mut y_bytes = [0u8; 32];
+            x[0].clone().into_uint().unwrap().to_big_endian(&mut x_bytes);
+            x[1].clone().into_uint().unwrap().to_big_endian(&mut y_bytes);
 
             // println!("pkc: 0x{}", hex::encode(x_bytes));
             // println!("pkc: 0x{}", hex::encode(y_bytes));
 
-            let x = Bn254Fq::from_be_bytes_mod_order(x_bytes);
-            let y = Bn254Fq::from_be_bytes_mod_order(y_bytes);
+            let x = Bn254Fq::from_be_bytes_mod_order(&x_bytes);
+            let y = Bn254Fq::from_be_bytes_mod_order(&y_bytes);
             let affine = G1Affine::<Config>::new(x, y);
             let p = KZGCommitment(affine.into());
             ret.push(p);
@@ -377,7 +365,7 @@ fn plonk_verify_shuffle2(data: &[u8]) -> Result<()> {
     verifier_params.verifier_params.cm_shuffle_public_key_vec = pkc;
 
     let input_cards = {
-        let cards = utils::into_bytes_2d_array(r.get(2).cloned()).ok_or(Error::Deserialize)?;
+        let cards = utils::into_bytes_2d_array(r.get(1).cloned()).ok_or(Error::Deserialize)?;
         let mut ret = Vec::new();
         for card in cards {
             // for x in &card {
@@ -389,7 +377,7 @@ fn plonk_verify_shuffle2(data: &[u8]) -> Result<()> {
     };
 
     let output_cards = {
-        let cards = utils::into_bytes_2d_array(r.get(3).cloned()).ok_or(Error::Deserialize)?;
+        let cards = utils::into_bytes_2d_array(r.get(2).cloned()).ok_or(Error::Deserialize)?;
         let mut ret = Vec::new();
         for card in cards {
             // for x in &card {
@@ -400,7 +388,7 @@ fn plonk_verify_shuffle2(data: &[u8]) -> Result<()> {
         ret
     };
 
-    let proof: ShuffleProof = utils::into_bytes(r.get(4).cloned())
+    let proof: ShuffleProof = utils::into_bytes(r.get(3).cloned())
         .ok_or(Error::Deserialize)
         .and_then(|v| {
             // println!("proof: 0x{}", hex::encode(&v));
@@ -465,7 +453,7 @@ mod tests {
         collections::HashMap,
         rand::{CryptoRng, RngCore, SeedableRng},
     };
-    use ethabi::Token;
+    use ethabi::{Uint, Token};
     use rand_chacha::ChaChaRng;
     use uzkge::anemoi::{AnemoiJive, AnemoiJive254};
     use zmatchmaking::{
@@ -483,7 +471,7 @@ mod tests {
         Card,
     };
 
-    use super::{plonk_verify_matchmaking, plonk_verify_shuffle};
+    use super::{plonk_verify_matchmaking, plonk_verify_shuffle2};
 
     #[test]
     fn test_plonk_verify_matchmaking() {
@@ -663,7 +651,7 @@ mod tests {
 
         let proof = proof.to_bytes_be();
 
-        let verifier_params = bincode::serialize(&verifier_params).unwrap();
+        let _verifier_params = bincode::serialize(&verifier_params).unwrap();
 
         let deck = {
             let mut ret = Vec::new();
@@ -699,12 +687,29 @@ mod tests {
             ret
         };
 
+        // let data = ethabi::encode(&[
+        //     Token::Bytes(verifier_params),
+        //     Token::Array(deck),
+        //     Token::Array(alice_shuffle_deck),
+        //     Token::Bytes(proof),
+        // ]);
+        // plonk_verify_shuffle(&data).unwrap()
+
+        let mut pkc = Vec::new();
+        for it in prover_params.prover_params.verifier_params.cm_shuffle_public_key_vec.iter() {
+            let (x, y) = point_to_uncompress(&it.0);
+
+            pkc.push(Token::Uint(Uint::from_big_endian(&x)));
+            pkc.push(Token::Uint(Uint::from_big_endian(&y)));
+        }
+
+
         let data = ethabi::encode(&[
-            Token::Bytes(verifier_params),
+            Token::Array(pkc),
             Token::Array(deck),
             Token::Array(alice_shuffle_deck),
             Token::Bytes(proof),
         ]);
-        plonk_verify_shuffle(&data).unwrap()
+        plonk_verify_shuffle2(&data).unwrap()
     }
 }
