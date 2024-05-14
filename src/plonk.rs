@@ -618,7 +618,7 @@ mod tests {
             prove_shuffle(&mut rng, &joint_pk, &deck, &prover_params).unwrap();
 
         let proof = proof.to_bytes_be();
-        println!("proof: {}", hex::encode(&proof));
+        println!("proof: 0x{}", hex::encode(&proof));
 
         let _verifier_params = bincode::serialize(&verifier_params).unwrap();
 
