@@ -20,9 +20,9 @@ ark-std = { version = "0.4", default-features = false, package = "ark-std-zypher
 ark-serialize = { version = "0.4", default-features = false, features = ["derive"], package = "ark-serialize-zypher" }
 ark-bn254 = { version = "0.4", default-features = false, features = ["curve"], package = "ark-bn254-zypher" }
 ark-ed-on-bn254 = { version = "0.4", default-features = false, package = "ark-ed-on-bn254-zypher" }
-uzkge = { git = "https://github.com/zypher-game/uzkge.git" }
-zmatchmaking = { git = "https://github.com/zypher-game/uzkge.git" }
-zshuffle = { git = "https://github.com/zypher-game/uzkge.git" }
+uzkge = "0.1.2"
+zshuffle = "0.1.2"
+zmatchmaking = "0.1.2"
 
 [dev-dependencies]
 hex = "0.4.3"
