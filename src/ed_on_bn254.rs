@@ -23,7 +23,7 @@ pub extern "C" fn __precompile_ed_on_bn254_point_add(
     let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
     let ret = unsafe { slice::from_raw_parts_mut(ret_val, 64) };
 
-    match point_add(&data, ret) {
+    match point_add(data, ret) {
         Ok(()) => 0,
         Err(e) => e.code(),
     }
@@ -39,7 +39,7 @@ fn point_add(data: &[u8], ret: &mut [u8]) -> Result<()> {
     let n = ParamType::Uint(256);
     let r = ethabi::decode(&[n.clone(), n.clone(), n.clone(), n], data)
         .map_err(|_| Error::Deserialize)?;
-    let h1 = utils::into_uint256(r.get(0).cloned()).ok_or(Error::Deserialize)?;
+    let h1 = utils::into_uint256(r.first().cloned()).ok_or(Error::Deserialize)?;
     let h2 = utils::into_uint256(r.get(1).cloned()).ok_or(Error::Deserialize)?;
     let h3 = utils::into_uint256(r.get(2).cloned()).ok_or(Error::Deserialize)?;
     let h4 = utils::into_uint256(r.get(3).cloned()).ok_or(Error::Deserialize)?;
@@ -74,7 +74,7 @@ pub extern "C" fn __precompile_ed_on_bn254_scalar_mul(
     let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
     let ret = unsafe { slice::from_raw_parts_mut(ret_val, 64) };
 
-    match scalar_mul(&data, ret) {
+    match scalar_mul(data, ret) {
         Ok(()) => 0,
         Err(e) => e.code(),
     }
@@ -89,7 +89,7 @@ pub extern "C" fn __precompile_ed_on_bn254_scalar_mul_gas(_: *const u8, _: usize
 fn scalar_mul(data: &[u8], ret: &mut [u8]) -> Result<()> {
     let n = ParamType::Uint(256);
     let r = ethabi::decode(&[n.clone(), n.clone(), n], data).map_err(|_| Error::Deserialize)?;
-    let h1 = utils::into_uint256(r.get(0).cloned()).ok_or(Error::Deserialize)?;
+    let h1 = utils::into_uint256(r.first().cloned()).ok_or(Error::Deserialize)?;
     let h2 = utils::into_uint256(r.get(1).cloned()).ok_or(Error::Deserialize)?;
     let h3 = utils::into_uint256(r.get(2).cloned()).ok_or(Error::Deserialize)?;
     let mut tmp_bytes = [0u8; 32];

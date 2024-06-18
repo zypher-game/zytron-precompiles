@@ -105,7 +105,7 @@ pub fn join_bytes32(byte32s: &[[u8; 32]]) -> Vec<u8> {
     v
 }
 
-pub fn split_bytes32(bytes32: &Vec<u8>) -> Result<Vec<&[u8; 32]>> {
+pub fn split_bytes32(bytes32: &[u8]) -> Result<Vec<&[u8; 32]>> {
     let num = bytes32.len() / 32;
 
     let mut res = Vec::with_capacity(num);

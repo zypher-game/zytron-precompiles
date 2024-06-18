@@ -20,7 +20,7 @@ pub const PLONL_VERIFY_BASE: u64 = 100;
 pub extern "C" fn __precompile_verify_matchmaking(data_ptr: *const u8, data_len: usize) -> u8 {
     let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
 
-    match plonk_verify_matchmaking(&data) {
+    match plonk_verify_matchmaking(data) {
         Ok(()) => 0,
         Err(e) => e.code(),
     }
@@ -31,7 +31,7 @@ pub extern "C" fn __precompile_verify_matchmaking(data_ptr: *const u8, data_len:
 pub extern "C" fn __precompile_verify_shuffle(data_ptr: *const u8, data_len: usize) -> u8 {
     let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
 
-    match plonk_verify_shuffle(&data) {
+    match plonk_verify_shuffle(data) {
         Ok(()) => 0,
         Err(e) => e.code(),
     }
@@ -59,7 +59,7 @@ fn plonk_verify_matchmaking(data: &[u8]) -> Result<()> {
     )
     .map_err(|_| Error::Deserialize)?;
 
-    let verifier_params: VerifierParams = utils::into_bytes(r.get(0).cloned())
+    let verifier_params: VerifierParams = utils::into_bytes(r.first().cloned())
         .ok_or(Error::Deserialize)
         .and_then(|v| bincode::deserialize(&v).map_err(|_e| Error::Deserialize))?;
 
@@ -131,7 +131,7 @@ fn plonk_verify_shuffle(data: &[u8]) -> Result<()> {
     )
     .map_err(|_| Error::Deserialize)?;
 
-    let verifier_params: VerifierParams = utils::into_bytes(r.get(0).cloned())
+    let verifier_params: VerifierParams = utils::into_bytes(r.first().cloned())
         .ok_or(Error::Deserialize)
         .and_then(|v| bincode::deserialize(&v).map_err(|_e| Error::Deserialize))?;
 
