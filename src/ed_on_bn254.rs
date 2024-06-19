@@ -1,6 +1,7 @@
 use ark_ec::{AffineRepr, CurveGroup};
 use ark_ed_on_bn254::{EdwardsAffine, Fq, Fr};
 use ark_ff::{BigInteger, PrimeField};
+use ark_std::panic;
 use core::slice;
 use ethabi::ParamType;
 
@@ -20,12 +21,19 @@ pub extern "C" fn __precompile_ed_on_bn254_point_add(
     data_len: usize,
     ret_val: *mut u8,
 ) -> u8 {
-    let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
-    let ret = unsafe { slice::from_raw_parts_mut(ret_val, 64) };
+    let result = panic::catch_unwind(|| {
+        let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
+        let ret = unsafe { slice::from_raw_parts_mut(ret_val, 64) };
 
-    match point_add(data, ret) {
-        Ok(()) => 0,
-        Err(e) => e.code(),
+        match point_add(data, ret) {
+            Ok(()) => 0,
+            Err(e) => e.code(),
+        }
+    });
+    if let Ok(code) = result {
+        code
+    } else {
+        Error::Unknown.code()
     }
 }
 
@@ -71,12 +79,19 @@ pub extern "C" fn __precompile_ed_on_bn254_scalar_mul(
     data_len: usize,
     ret_val: *mut u8,
 ) -> u8 {
-    let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
-    let ret = unsafe { slice::from_raw_parts_mut(ret_val, 64) };
+    let result = panic::catch_unwind(|| {
+        let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
+        let ret = unsafe { slice::from_raw_parts_mut(ret_val, 64) };
 
-    match scalar_mul(data, ret) {
-        Ok(()) => 0,
-        Err(e) => e.code(),
+        match scalar_mul(data, ret) {
+            Ok(()) => 0,
+            Err(e) => e.code(),
+        }
+    });
+    if let Ok(code) = result {
+        code
+    } else {
+        Error::Unknown.code()
     }
 }
 

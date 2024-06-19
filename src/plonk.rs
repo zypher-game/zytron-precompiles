@@ -2,6 +2,7 @@ use alloc::{boxed::Box, vec::Vec};
 use ark_bn254::Fr;
 use ark_ed_on_bn254::{EdwardsAffine, EdwardsProjective, Fq};
 use ark_ff::PrimeField;
+use ark_std::panic;
 use core::slice;
 use ethabi::ParamType;
 use uzkge::gen_params::VerifierParams;
@@ -18,22 +19,36 @@ pub const PLONL_VERIFY_BASE: u64 = 100;
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn __precompile_verify_matchmaking(data_ptr: *const u8, data_len: usize) -> u8 {
-    let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
+    let result = panic::catch_unwind(|| {
+        let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
 
-    match plonk_verify_matchmaking(data) {
-        Ok(()) => 0,
-        Err(e) => e.code(),
+        match plonk_verify_matchmaking(data) {
+            Ok(()) => 0,
+            Err(e) => e.code(),
+        }
+    });
+    if let Ok(code) = result {
+        code
+    } else {
+        Error::Unknown.code()
     }
 }
 
 #[no_mangle]
 #[allow(clippy::not_unsafe_ptr_arg_deref)]
 pub extern "C" fn __precompile_verify_shuffle(data_ptr: *const u8, data_len: usize) -> u8 {
-    let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
+    let result = panic::catch_unwind(|| {
+        let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
 
-    match plonk_verify_shuffle(data) {
-        Ok(()) => 0,
-        Err(e) => e.code(),
+        match plonk_verify_shuffle(data) {
+            Ok(()) => 0,
+            Err(e) => e.code(),
+        }
+    });
+    if let Ok(code) = result {
+        code
+    } else {
+        Error::Unknown.code()
     }
 }
 

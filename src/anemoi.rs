@@ -2,6 +2,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use ark_bn254::Fr;
 use ark_ff::{BigInteger, PrimeField};
+use ark_std::panic;
 use core::slice;
 use ethabi::ParamType;
 use uzkge::anemoi::{AnemoiJive, AnemoiJive254};
@@ -17,12 +18,18 @@ pub extern "C" fn __precompile_anemoi(
     data_len: usize,
     ret_val: *mut u8,
 ) -> u8 {
-    let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
-    let ret = unsafe { slice::from_raw_parts_mut(ret_val, 32) };
-
-    match eval_variable_length_hash(data, ret) {
-        Ok(()) => 0,
-        Err(e) => e.code(),
+    let result = panic::catch_unwind(|| {
+        let data = unsafe { slice::from_raw_parts(data_ptr, data_len) };
+        let ret = unsafe { slice::from_raw_parts_mut(ret_val, 32) };
+        match eval_variable_length_hash(data, ret) {
+            Ok(()) => 0,
+            Err(e) => e.code(),
+        }
+    });
+    if let Ok(code) = result {
+        code
+    } else {
+        Error::Unknown.code()
     }
 }
 
