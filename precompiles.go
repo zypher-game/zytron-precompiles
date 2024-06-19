@@ -23,6 +23,7 @@ import (
 	"errors"
 	"unsafe"
 
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 )
 
@@ -40,7 +41,7 @@ func ErrHandle(code byte) error {
 type Anemoi struct{}
 
 func (a *Anemoi) Run(input []byte) ([]byte, error) {
-	output := make([]byte, 64)
+	output := make([]byte, 32)
 	cout := unsafe.Pointer(&output[0])
 
 	cstr := unsafe.Pointer(&input[0])
@@ -164,5 +165,20 @@ func (s *VerifyShuffle) Run(input []byte) ([]byte, error) {
 
 	res := C.__precompile_verify_shuffle(cstr, len)
 
-	return nil, ErrHandle(byte(res))
+	boolType, _ := abi.NewType("bool", "", nil)
+
+	arguments := abi.Arguments{
+		{
+			Type: boolType,
+		},
+	}
+
+	data := true
+	if res != 0 {
+		data = false
+	}
+
+	encodedData, _ := arguments.Pack(data)
+
+	return encodedData, ErrHandle(byte(res))
 }
