@@ -141,7 +141,22 @@ func (m *VerifyMatchmaking) Run(input []byte) ([]byte, error) {
 
 	res := C.__precompile_verify_matchmaking(cstr, len)
 
-	return nil, ErrHandle(byte(res))
+	boolType, _ := abi.NewType("bool", "", nil)
+
+	arguments := abi.Arguments{
+		{
+			Type: boolType,
+		},
+	}
+
+	data := true
+	if res != 0 {
+		data = false
+	}
+
+	encodedData, _ := arguments.Pack(data)
+
+	return encodedData, ErrHandle(byte(res))
 }
 
 type VerifyShuffle struct{}
