@@ -43,7 +43,7 @@ func ErrHandle(code byte) error {
 type Anemoi struct{}
 
 func (a *Anemoi) Run(input []byte) ([]byte, error) {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return nil, ErrHandle(byte(4))
 	}
 	output := make([]byte, 32)
@@ -58,7 +58,7 @@ func (a *Anemoi) Run(input []byte) ([]byte, error) {
 }
 
 func (a *Anemoi) RequiredGas(input []byte) uint64 {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return 0
 	}
 	cstr := unsafe.Pointer(&input[0])
@@ -80,7 +80,7 @@ func (a *EdOnBN254PointAdd) RegistryKey() common.Address {
 }
 
 func (a *EdOnBN254PointAdd) Run(input []byte) ([]byte, error) {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return nil, ErrHandle(byte(4))
 	}
 	output := make([]byte, 64)
@@ -95,7 +95,7 @@ func (a *EdOnBN254PointAdd) Run(input []byte) ([]byte, error) {
 }
 
 func (a *EdOnBN254PointAdd) RequiredGas(input []byte) uint64 {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return 0
 	}
 	cstr := unsafe.Pointer(&input[0])
@@ -113,7 +113,7 @@ func (a *EdOnBN254ScalarMul) RegistryKey() common.Address {
 }
 
 func (a *EdOnBN254ScalarMul) Run(input []byte) ([]byte, error) {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return nil, ErrHandle(byte(4))
 	}
 
@@ -129,7 +129,7 @@ func (a *EdOnBN254ScalarMul) Run(input []byte) ([]byte, error) {
 }
 
 func (a *EdOnBN254ScalarMul) RequiredGas(input []byte) uint64 {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return 0
 	}
 	cstr := unsafe.Pointer(&input[0])
@@ -147,7 +147,7 @@ func (m *VerifyMatchmaking) RegistryKey() common.Address {
 }
 
 func (m *VerifyMatchmaking) RequiredGas(input []byte) uint64 {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return 0
 	}
 	cstr := unsafe.Pointer(&input[0])
@@ -159,7 +159,7 @@ func (m *VerifyMatchmaking) RequiredGas(input []byte) uint64 {
 }
 
 func (m *VerifyMatchmaking) Run(input []byte) ([]byte, error) {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return nil, ErrHandle(byte(4))
 	}
 
@@ -193,7 +193,7 @@ func (s *VerifyShuffle) RegistryKey() common.Address {
 }
 
 func (s *VerifyShuffle) RequiredGas(input []byte) uint64 {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return 0
 	}
 	cstr := unsafe.Pointer(&input[0])
@@ -205,7 +205,7 @@ func (s *VerifyShuffle) RequiredGas(input []byte) uint64 {
 }
 
 func (s *VerifyShuffle) Run(input []byte) ([]byte, error) {
-	if len(input) < 0 {
+	if len(input) <= 0 {
 		return nil, ErrHandle(byte(4))
 	}
 
